@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Pay AI Checkout — v1.0 Demo</title>
+  <meta name="description" content="Production-grade AI-native checkout platform integrating Google Pay, MIT recurring billing, dynamic pricing, and AI monitoring pipeline.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Main Application Header -->
+    <header class="app-header">
+      <div class="brand-title">
+        <span>⚡ Google Pay AI Checkout</span>
+        <span class="environment-badge">TEST ENVIRONMENT</span>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted);">
+        v1.0 Implementation | Vanilla HTML5 / CSS3 / JS
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button id="tab-btn-checkout" class="tab-btn active" onclick="switchTab('checkout')">
+        🛒 Express Guest Checkout
+      </button>
+      <button id="tab-btn-mit" class="tab-btn" onclick="switchTab('mit')">
+        🔄 Recurring Billing (MIT)
+      </button>
+      <button id="tab-btn-pricing" class="tab-btn" onclick="switchTab('pricing')">
+        📊 Dynamic Pricing Rules
+      </button>
+      <button id="tab-btn-monitoring" class="tab-btn" onclick="switchTab('monitoring')">
+        🤖 AI Monitoring Dashboard
+      </button>
+    </nav>
+
+    <!-- TAB 1: EXPRESS GUEST CHECKOUT -->
+    <main id="tab-panel-checkout" class="tab-panel active">
+      <div class="grid-2col">
+        <!-- Order & Cart Summary -->
+        <section class="card">
+          <h2 class="card-title">📦 Cart & Order Summary</h2>
+          <p class="card-subtitle">Sample test cart with line item pricing and quantities</p>
+
+          <div id="cart-items-container" class="cart-items-list">
+            <!-- Rendered by checkout.js -->
+          </div>
+
+          <div class="summary-row">
+            <span>Cart Subtotal</span>
+            <span id="cart-subtotal">$79.97</span>
+          </div>
+
+          <!-- Funding Source Selector for Dynamic Pricing Preview -->
+          <div class="funding-selector-group">
+            <label class="form-label">Simulate Card Funding Source (`cardFundingSource`):</label>
+            <div class="funding-options">
+              <button id="funding-btn-CREDIT" class="funding-option-btn selected" onclick="selectFundingSource('CREDIT')">
+                💳 CREDIT (+2.5%)
+              </button>
+              <button id="funding-btn-DEBIT" class="funding-option-btn" onclick="selectFundingSource('DEBIT')">
+                🏦 DEBIT (-1.5%)
+              </button>
+              <button id="funding-btn-PREPAID" class="funding-option-btn" onclick="selectFundingSource('PREPAID')">
+                🎁 PREPAID (-1.0%)
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic Pricing Breakdown Box -->
+          <div id="pricing-breakdown-container" class="pricing-breakdown-box">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div class="summary-row total">
+            <span>Total Payable</span>
+            <span id="cart-final-total">$81.97</span>
+          </div>
+        </section>
+
+        <!-- Express Guest Checkout & Google Pay Sheet -->
+        <section class="card">
+          <h2 class="card-title">🚀 Express Guest Checkout</h2>
+          <p class="card-subtitle">Streamlined checkout without account creation</p>
+
+          <form id="express-checkout-form" onsubmit="event.preventDefault();">
+            <div class="form-group">
+              <label for="guest-email" class="form-label">Guest Contact Email</label>
+              <input type="email" id="guest-email" class="form-input" value="guest.checkout@example.com" required>
+            </div>
+            <div class="form-group">
+              <label for="guest-name" class="form-label">Full Name (Optional)</label>
+              <input type="text" id="guest-name" class="form-input" value="Jane Developer">
+            </div>
+          </form>
+
+          <div style="margin-top: 1.5rem; text-align: center;">
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+              Pay securely in 1-click via Google Pay API
+            </p>
+            
+            <!-- Target container where Google Pay button is rendered after isReadyToPay() -->
+            <div id="gpay-button-container">
+              <div class="gpay-loading-placeholder">
+                <span>Initializing Google Pay API...</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="payment-result-log" class="mt-2">
+            <!-- Payment token & authorization result will be logged here -->
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- TAB 2: MERCHANT-INITIATED TRANSACTIONS (MIT) -->
+    <section id="tab-panel-mit" class="tab-panel">
+      <div class="grid-2col">
+        <!-- Agreement Creation Form -->
+        <div class="card">
+          <h2 class="card-title">📄 Create Billing Agreement</h2>
+          <p class="card-subtitle">Setup recurring charges for subscriptions or automated reorders</p>
+
+          <form id="mit-agreement-form" onsubmit="handleCreateAgreement(event)">
+            <div class="form-group">
+              <label for="plan-name" class="form-label">Plan / Agreement Name</label>
+              <input type="text" id="plan-name" class="form-input" value="Pro Cloud Membership" required>
+            </div>
+            <div class="form-group">
+              <label for="plan-amount" class="form-label">Recurring Amount (USD)</label>
+              <input type="number" id="plan-amount" class="form-input" value="49.99" step="0.01" required>
+            </div>
+            <div class="form-group">
+              <label for="plan-frequency" class="form-label">Billing Frequency</label>
+              <select id="plan-frequency" class="form-select">
+                <option value="MONTHLY" selected>MONTHLY</option>
+                <option value="WEEKLY">WEEKLY</option>
+                <option value="ANNUAL">ANNUAL</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="plan-email" class="form-label">Subscriber Email</label>
+              <input type="email" id="plan-email" class="form-input" value="subscriber@example.com" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+              ➕ Create Billing Agreement
+            </button>
+          </form>
+        </div>
+
+        <!-- Agreement Management & Charge Execution -->
+        <div class="card">
+          <h2 class="card-title">⚙️ Active Agreements & History</h2>
+          <p class="card-subtitle">Execute charges using unique idempotency keys & track charge logs</p>
+
+          <div id="mit-execution-log" class="mb-2"></div>
+
+          <div id="agreements-list-container">
+            <!-- Rendered by mit.js -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: DYNAMIC PRICING RULES -->
+    <section id="tab-panel-pricing" class="tab-panel">
+      <div class="card">
+        <h2 class="card-title">💰 Dynamic Pricing Engine</h2>
+        <p class="card-subtitle">Automatically adjusts total checkout price based on card funding source</p>
+
+        <div class="grid-2col" style="margin-top: 1rem;">
+          <div class="card" style="background: rgba(15, 23, 42, 0.4);">
+            <h3 style="font-size: 1rem; color: var(--accent-primary); margin-bottom: 0.5rem;">💳 CREDIT CARD</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Surcharge applied to cover credit processing fees.</p>
+            <div style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0; color: var(--warning-color);">+2.5%</div>
+            <p style="font-size: 0.8rem; color: var(--text-dim);">Formula: Total = Subtotal × 1.025</p>
+          </div>
+
+          <div class="card" style="background: rgba(15, 23, 42, 0.4);">
+            <h3 style="font-size: 1rem; color: var(--success-color); margin-bottom: 0.5rem;">🏦 DEBIT CARD</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Instant discount applied for lower transaction interchange fees.</p>
+            <div style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0; color: var(--success-color);">-1.5%</div>
+            <p style="font-size: 0.8rem; color: var(--text-dim);">Formula: Total = Subtotal × 0.985</p>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem;" class="card" style="background: rgba(15, 23, 42, 0.4);">
+          <h3 style="font-size: 1rem; color: #a5b4fc; margin-bottom: 0.5rem;">🎁 PREPAID CARD</h3>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Discount applied for prepaid payment methods.</p>
+          <div style="font-size: 1.5rem; font-weight: bold; margin: 0.5rem 0; color: var(--success-color);">-1.0%</div>
+          <p style="font-size: 0.8rem; color: var(--text-dim);">Formula: Total = Subtotal × 0.99</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: AI MONITORING DASHBOARD -->
+    <section id="tab-panel-monitoring" class="tab-panel">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div>
+            <h2 class="card-title" style="margin-bottom: 0.25rem;">🤖 AI Monitoring Pipeline</h2>
+            <p class="card-subtitle" style="margin-bottom: 0;">Periodically queries Google Pay MCP server metrics & detects anomalies for human review</p>
+          </div>
+          <button class="btn btn-secondary" style="width: auto;" onclick="window.aiMonitoring.runHealthCheck()">
+            🔄 Run Health Check Now
+          </button>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Integration Status</div>
+            <div id="metric-integration-status" class="metric-value" style="font-size: 1.1rem; color: var(--success-color);">ACTIVE</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Error Rate (24h)</div>
+            <div id="metric-error-rate" class="metric-value" style="color: var(--warning-color);">5.6%</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">p95 Latency</div>
+            <div id="metric-p95-latency" class="metric-value">1450 ms</div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 0.5rem;">📡 Live Telemetry & Anomaly Alert Log</h3>
+        <div id="ai-console-logs" class="console-box">
+          <!-- Rendered by ai-monitoring.js -->
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Google Pay API JS SDK -->
+  <script async src="https://pay.google.com/gp/p/js/pay.js" onload="onGooglePaySdkLoaded()"></script>
+  
+  <!-- Application JS Modules -->
+  <script src="google-pay.js"></script>
+  <script src="checkout.js"></script>
+  <script src="mit.js"></script>
+  <script src="ai-monitoring.js"></script>
+
+  <!-- Navigation & Initialization Script -->
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(panel => panel.classList.remove('active'));
+
+      document.getElementById(`tab-btn-${tabId}`).classList.add('active');
+      document.getElementById(`tab-panel-${tabId}`).classList.add('active');
+    }
+
+    function selectFundingSource(source) {
+      document.querySelectorAll('.funding-option-btn').forEach(btn => btn.classList.remove('selected'));
+      const btn = document.getElementById(`funding-btn-${source}`);
+      if (btn) btn.classList.add('selected');
+
+      if (window.checkoutMgr) {
+        window.checkoutMgr.setFundingSource(source);
+      }
+    }
+
+    function handleCreateAgreement(e) {
+      e.preventDefault();
+      const planName = document.getElementById('plan-name').value;
+      const amount = document.getElementById('plan-amount').value;
+      const frequency = document.getElementById('plan-frequency').value;
+      const email = document.getElementById('plan-email').value;
+
+      if (window.mitMgr) {
+        window.mitMgr.createBillingAgreement(planName, amount, frequency, email);
+      }
+    }
+
+    function onGooglePaySdkLoaded() {
+      console.log('[App] Google Pay SDK pay.js loaded.');
+      initGooglePayUI();
+    }
+
+    async function initGooglePayUI() {
+      const container = document.getElementById('gpay-button-container');
+      if (window.GPayModule) {
+        await window.GPayModule.renderGooglePayButton(container, () => {
+          window.GPayModule.onGooglePayButtonClicked();
+        });
+      }
+    }
+
+    // DomContentLoaded initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.checkoutMgr) window.checkoutMgr.renderCartUI();
+      if (window.mitMgr) window.mitMgr.renderAgreementsUI();
+      if (window.aiMonitoring) window.aiMonitoring.startPolling(8000);
+
+      // Attempt to render GPay button if SDK loaded already
+      setTimeout(initGooglePayUI, 500);
+    });
+  </script>
+</body>
+</html>

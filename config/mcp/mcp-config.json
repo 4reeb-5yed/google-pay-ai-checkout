@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "google-pay": {
+      "url": "https://paydeveloper.googleapis.com/mcp",
+      "auth": {
+        "type": "bearer",
+        "token": "<MCP_AUTH_TOKEN>"
+      }
+    }
+  },
+  "settings": {
+    "cacheDuration": "3600",
+    "retryAttempts": 3,
+    "timeoutMs": 30000
+  }
+}
