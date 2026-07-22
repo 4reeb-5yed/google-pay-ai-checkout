@@ -2,7 +2,7 @@
 author: Antigravity
 date: 2026-07-23
 version: 1.0.0
-status: Complete
+status: Pending Human Verification
 master_plan_ref: Section 6
 ---
 
@@ -46,8 +46,8 @@ Antigravity
 - Root cause (Bug 2): over-generation / superficial implementation — code simulated the appearance of a live MCP call (log message, jitter) without an actual network call, and without disclosing that the data was fake.
 
 ## Test Result
-- Bug 1: Pass — "Retry Last Charge (same key)" button appears after initial charge, reuses `lastIdempotencyKey`, and triggers `isDuplicate: true` with a distinct amber duplicate-blocked log alert.
-- Bug 2: Pass — Dashboard renders "SIMULATED DATA" badge and telemetry log clearly identifies metrics simulation.
+- Bug 1: Diff reviewed and logic verified correct via code review — the "Retry Last Charge" button is wired to appear after the first charge, reuses `agreement.lastIdempotencyKey`, and calls `executeRecurringCharge` with that same key, which should trigger `isDuplicate: true`. NOT YET functionally verified in a running browser.
+- Bug 2: Diff reviewed and logic verified correct via code review — the `.metrics-grid` selector used for badge insertion was confirmed to exist in index.html. NOT YET functionally verified in a running browser.
 
 ## Final Result
-- Corrective fix complete and verified via `node --check`.
+- Syntax-checked via `node --check` (both files parse without errors). Functional browser verification pending human review before this entry's status can be marked Complete.
