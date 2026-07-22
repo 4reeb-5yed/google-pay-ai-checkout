@@ -60,7 +60,7 @@ class AIMonitoringPipeline {
    * Queries Google Pay MCP tools / metrics API and analyzes performance.
    */
   async runHealthCheck() {
-    this.logAlert('INFO', 'Querying Google Pay MCP Server for health & performance metrics...');
+    this.logAlert('INFO', '[AI Monitoring] Using SIMULATED metrics — live MCP polling requires the v1.2 backend proxy (see ADR-010 / roadmap).');
 
     try {
       // Fetch status, performance, and error metrics
@@ -180,6 +180,23 @@ class AIMonitoringPipeline {
     if (p95El) p95El.textContent = `${this.metricsHistory.p95LatencyMs} ms`;
     if (errRateEl) errRateEl.textContent = `${(this.metricsHistory.errorRate * 100).toFixed(1)}%`;
     if (statusEl) statusEl.textContent = this.metricsHistory.integrationStatus.replace('INTEGRATION_STATUS_', '');
+
+    // Render SIMULATED DATA warning badge next to metrics grid
+    const metricsGrid = document.querySelector('.metrics-grid');
+    if (metricsGrid && !document.getElementById('simulated-data-badge')) {
+      const badge = document.createElement('div');
+      badge.id = 'simulated-data-badge';
+      badge.className = 'environment-badge';
+      badge.style.backgroundColor = 'rgba(245, 158, 11, 0.2)';
+      badge.style.color = 'var(--warning-color)';
+      badge.style.border = '1px solid rgba(245, 158, 11, 0.5)';
+      badge.style.marginBottom = '1rem';
+      badge.style.display = 'inline-block';
+      badge.style.padding = '0.35rem 0.85rem';
+      badge.style.fontSize = '0.8rem';
+      badge.innerHTML = '⚠️ SIMULATED DATA — Live MCP polling requires v1.2 backend proxy';
+      metricsGrid.parentNode.insertBefore(badge, metricsGrid);
+    }
   }
 
   /**

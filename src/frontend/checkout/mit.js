@@ -47,6 +47,7 @@ class MITManager {
       customerEmail: customerEmail,
       status: 'ACTIVE', // ACTIVE, CANCELLED
       createdAt: new Date().toISOString(),
+      lastIdempotencyKey: null,
       chargeHistory: []
     };
 
@@ -160,6 +161,7 @@ class MITManager {
     container.innerHTML = this.agreements.map(agreement => {
       const isCancelled = agreement.status === 'CANCELLED';
       const statusClass = isCancelled ? 'cancelled' : 'active';
+      const hasLastKey = Boolean(agreement.lastIdempotencyKey);
       const historyItems = agreement.chargeHistory.map(chg => `
         <div class="charge-history-item">
           <span>${new Date(chg.timestamp).toLocaleTimeString()} — $${chg.amount.toFixed(2)}</span>
@@ -183,12 +185,19 @@ class MITManager {
             ID: <span style="font-family: monospace;">${agreement.agreementId}</span> | Customer: ${agreement.customerEmail}
           </div>
 
-          <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-            <button class="btn btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;" 
+          <div style="display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap;">
+            <button class="btn btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; width: auto;" 
               ${isCancelled ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}
               onclick="window.mitMgr.triggerChargeClick('${agreement.agreementId}')">
               ⚡ Execute Recurring Charge
             </button>
+            ${hasLastKey ? `
+              <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; width: auto; border-color: var(--warning-color); color: var(--warning-color);" 
+                ${isCancelled ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}
+                onclick="window.mitMgr.triggerRetryChargeClick('${agreement.agreementId}')">
+                🔄 Retry Last Charge (same key)
+              </button>
+            ` : ''}
             <button class="btn btn-danger" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; width: auto;" 
               ${isCancelled ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}
               onclick="window.mitMgr.cancelBillingAgreement('${agreement.agreementId}')">
@@ -212,27 +221,61 @@ class MITManager {
    * @param {string} agreementId - Agreement ID
    */
   triggerChargeClick(agreementId) {
+    const agreement = this.agreements.find(a => a.agreementId === agreementId);
     const idempotencyKey = this.generateIdempotencyKey();
+    if (agreement) {
+      agreement.lastIdempotencyKey = idempotencyKey;
+    }
     const result = this.executeRecurringCharge(agreementId, idempotencyKey);
+    this.renderLogResult(agreementId, result);
+  }
 
+  /**
+   * UI Click handler for retrying a charge using the stored last idempotency key.
+   * @param {string} agreementId - Agreement ID
+   */
+  triggerRetryChargeClick(agreementId) {
+    const agreement = this.agreements.find(a => a.agreementId === agreementId);
+    if (!agreement || !agreement.lastIdempotencyKey) return;
+    const result = this.executeRecurringCharge(agreementId, agreement.lastIdempotencyKey);
+    this.renderLogResult(agreementId, result);
+  }
+
+  /**
+   * Renders the execution log UI with distinct visual states for success and duplicate blocked states.
+   * @param {string} agreementId - Agreement ID
+   * @param {object} result - Result payload from executeRecurringCharge
+   */
+  renderLogResult(agreementId, result) {
     const logEl = document.getElementById('mit-execution-log');
-    if (logEl) {
-      if (result.success) {
+    if (!logEl) return;
+
+    if (result.success) {
+      if (result.isDuplicate) {
         logEl.innerHTML = `
-          <div class="idempotency-box" style="border-left: 3px solid var(--success-color);">
+          <div class="idempotency-box" style="border-left: 4px solid var(--warning-color); background: rgba(245, 158, 11, 0.15); color: var(--warning-color);">
+            <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">⚠️ Duplicate Charge Blocked via Idempotency Key</div>
+            <div><strong>Status:</strong> ${result.message}</div>
+            <div><strong>Agreement:</strong> ${agreementId}</div>
+            <div><strong>Reused Idempotency Key:</strong> ${result.chargeRecord ? result.chargeRecord.idempotencyKey : 'N/A'}</div>
+          </div>
+        `;
+      } else {
+        logEl.innerHTML = `
+          <div class="idempotency-box" style="border-left: 4px solid var(--success-color);">
             <div><strong>Status:</strong> Charge Executed Successfully (${result.chargeRecord.status})</div>
             <div><strong>Agreement:</strong> ${agreementId}</div>
             <div><strong>Idempotency Key:</strong> ${result.chargeRecord.idempotencyKey}</div>
             <div><strong>Transaction Token:</strong> ${result.chargeRecord.transactionToken}</div>
           </div>
         `;
-      } else {
-        logEl.innerHTML = `
-          <div class="idempotency-box" style="border-left: 3px solid var(--danger-color); color: var(--danger-color);">
-            <div><strong>Error:</strong> ${result.message}</div>
-          </div>
-        `;
       }
+    } else {
+      logEl.innerHTML = `
+        <div class="idempotency-box" style="border-left: 4px solid var(--danger-color); color: var(--danger-color);">
+          <div><strong>Error:</strong> ${result.message}</div>
+        </div>
+      `;
     }
   }
 }
