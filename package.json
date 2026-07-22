@@ -1,0 +1,17 @@
+{
+  "name": "google-pay-ai-checkout",
+  "version": "0.1.0",
+  "description": "AI-native Google Pay checkout platform built with MCP-grounded development",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint . --ext .js,.ts",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "echo \"Tests will be configured in v1.0 implementation\"",
+    "build": "echo \"Build pipeline will be configured in v1.0 implementation\""
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0",
+    "prettier": "^3.0.0"
+  }
+}

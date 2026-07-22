@@ -1,0 +1,16 @@
+# Documentation — architecture reviewers
+/docs/ @architecture-team
+
+# Source code — engineering reviewers
+/src/ @engineering-team
+
+# Tests — engineering reviewers
+/tests/ @engineering-team
+
+# Infrastructure — DevOps reviewers
+/infrastructure/ @devops-team
+/.github/ @devops-team
+
+# Security-sensitive files — require security review
+SECURITY.md @security-team
+/docs/architecture/security-threat-model.md @security-team
