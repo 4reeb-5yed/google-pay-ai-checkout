@@ -205,7 +205,7 @@ class CheckoutManager {
       modalLogEl.innerHTML = `
         <div class="agreement-card" style="border-color: var(--success-color);">
           <div class="agreement-header">
-            <span class="agreement-title" style="color: var(--success-color);">✓ Payment Authorized Successfully!</span>
+            <span class="agreement-title" style="color: var(--success-color);"><i class="ti ti-circle-check" aria-hidden="true"></i> Payment Authorized Successfully!</span>
             <span class="status-tag active">AUTHORIZED</span>
           </div>
           <p style="font-size: 0.85rem; color: var(--text-muted);">Payment token generated & logged:</p>

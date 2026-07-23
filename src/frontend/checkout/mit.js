@@ -189,13 +189,13 @@ class MITManager {
             <button class="btn btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; width: auto;" 
               ${isCancelled ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}
               onclick="window.mitMgr.triggerChargeClick('${agreement.agreementId}')">
-              ⚡ Execute Recurring Charge
+              <i class="ti ti-bolt" aria-hidden="true"></i> Execute Recurring Charge
             </button>
             ${hasLastKey ? `
               <button class="btn btn-secondary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; width: auto; border-color: var(--warning-color); color: var(--warning-color);" 
                 ${isCancelled ? 'disabled style="opacity:0.4; cursor:not-allowed;"' : ''}
                 onclick="window.mitMgr.triggerRetryChargeClick('${agreement.agreementId}')">
-                🔄 Retry Last Charge (same key)
+                <i class="ti ti-refresh" aria-hidden="true"></i> Retry Last Charge (same key)
               </button>
             ` : ''}
             <button class="btn btn-danger" style="font-size: 0.8rem; padding: 0.4rem 0.8rem; width: auto;" 
@@ -254,7 +254,7 @@ class MITManager {
       if (result.isDuplicate) {
         logEl.innerHTML = `
           <div class="idempotency-box" style="border-left: 4px solid var(--warning-color); background: rgba(245, 158, 11, 0.15); color: var(--warning-color);">
-            <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;">⚠️ Duplicate Charge Blocked via Idempotency Key</div>
+            <div style="font-size: 0.85rem; font-weight: bold; margin-bottom: 0.25rem;"><i class="ti ti-alert-triangle" aria-hidden="true"></i> Duplicate Charge Blocked via Idempotency Key</div>
             <div><strong>Status:</strong> ${result.message}</div>
             <div><strong>Agreement:</strong> ${agreementId}</div>
             <div><strong>Reused Idempotency Key:</strong> ${result.chargeRecord ? result.chargeRecord.idempotencyKey : 'N/A'}</div>
