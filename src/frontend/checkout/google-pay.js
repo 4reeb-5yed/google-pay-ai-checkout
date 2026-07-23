@@ -128,7 +128,7 @@ async function renderGooglePayButton(containerElement, onClickHandler) {
     // Render standard fallback button for testing environment
     const fallbackBtn = document.createElement('button');
     fallbackBtn.className = 'btn btn-primary';
-    fallbackBtn.innerHTML = '💳 Pay with Google Pay (Simulated)';
+    fallbackBtn.innerHTML = '<i class="ti ti-credit-card" aria-hidden="true"></i> Pay with Google Pay (Simulated)';
     fallbackBtn.addEventListener('click', onClickHandler || onGooglePayButtonClicked);
     containerElement.appendChild(fallbackBtn);
     console.log('[Google Pay] Rendered fallback Google Pay button.');

@@ -194,7 +194,7 @@ class AIMonitoringPipeline {
       badge.style.display = 'inline-block';
       badge.style.padding = '0.35rem 0.85rem';
       badge.style.fontSize = '0.8rem';
-      badge.innerHTML = '⚠️ SIMULATED DATA — Live MCP polling requires v1.2 backend proxy';
+      badge.innerHTML = '<i class="ti ti-alert-triangle" aria-hidden="true"></i> SIMULATED DATA — Live MCP polling requires v1.2 backend proxy';
       metricsGrid.parentNode.insertBefore(badge, metricsGrid);
     }
   }
