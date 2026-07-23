@@ -1,5 +1,5 @@
 ---
-author: Bootstrap_System
+author: Areeb Syed
 date: 2026-07-23
 version: 1.0.0
 status: Accepted

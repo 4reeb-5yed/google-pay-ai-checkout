@@ -2,6 +2,7 @@
   "name": "google-pay-ai-checkout",
   "version": "0.1.0",
   "description": "AI-native Google Pay checkout platform built with MCP-grounded development",
+  "author": "Areeb Syed",
   "license": "MIT",
   "scripts": {
     "lint": "eslint . --ext .js,.ts",
